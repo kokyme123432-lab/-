@@ -1,20 +1,13 @@
-<!-- index.html - النسخة النهائية مع دعم الخلفية الكامل -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#667eea">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="منبهي">
-    <title>⏰ المنبه الذكي | يعمل في الخلفية</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23667eea'/%3E%3Ctext x='50' y='67' font-size='50' text-anchor='middle' fill='white'%3E⏰%3C/text%3E%3C/svg%3E">
+    <title>⏰ المنبه الذكي | Alarm & Timer</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* نفس الاستايلات السابقة مع إضافة جديدة */
         * {
             margin: 0;
             padding: 0;
@@ -34,27 +27,7 @@
             overflow-x: hidden;
         }
 
-        .notification-permission {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(145deg, #ffd93e, #f39c12);
-            color: #333;
-            padding: 12px 20px;
-            border-radius: 50px;
-            display: none;
-            align-items: center;
-            gap: 10px;
-            z-index: 1000;
-            cursor: pointer;
-            animation: slideIn 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        .notification-permission.show {
-            display: flex;
-        }
-
+        /* مؤشر التثبيت */
         .install-prompt {
             position: fixed;
             top: 20px;
@@ -69,6 +42,7 @@
             z-index: 1000;
             cursor: pointer;
             animation: slideIn 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         .install-prompt.show {
@@ -90,25 +64,6 @@
 
         .offline-badge.show {
             display: block;
-        }
-
-        .background-status {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.7);
-            color: #48dbfb;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .background-status i {
-            font-size: 0.8rem;
         }
 
         .alarm-app {
@@ -272,6 +227,12 @@
             color: #667eea;
         }
 
+        body.dark-mode .preset-btn {
+            background: #1a1a24;
+            color: #9b87f5;
+            border-color: #9b87f5;
+        }
+
         .custom-time {
             display: flex;
             gap: 10px;
@@ -286,6 +247,12 @@
             border: 2px solid #f0f0f0;
             border-radius: 20px;
             text-align: center;
+        }
+
+        body.dark-mode .custom-time input {
+            background: #1a1a24;
+            border-color: #3a3a4a;
+            color: white;
         }
 
         .custom-time button {
@@ -680,7 +647,7 @@
                 left: 20px;
                 right: 20px;
             }
-            .notification-permission, .install-prompt {
+            .install-prompt {
                 top: 80px;
                 right: 20px;
                 left: 20px;
@@ -691,27 +658,10 @@
     </style>
 </head>
 <body>
-    <!-- طلب إذن الإشعارات -->
-    <div class="notification-permission" id="notificationPermission" onclick="requestNotificationPermission()">
-        <i class="fas fa-bell"></i>
-        <span>فعّل الإشعارات ليعمل المنبه حتى لو كان التطبيق مغلقاً</span>
-    </div>
-
     <!-- مؤشر التثبيت -->
-    <div class="install-prompt" id="installPrompt" onclick="installPWA()">
+    <div class="install-prompt" id="installPrompt" onclick="installPWA()" style="display: none;">
         <i class="fas fa-download"></i>
-        <span>تثبيت التطبيق على جهازك</span>
-    </div>
-
-    <!-- مؤشر وضع عدم الاتصال -->
-    <div class="offline-badge" id="offlineBadge">
-        <i class="fas fa-wifi-slash"></i> غير متصل - يعمل محلياً
-    </div>
-
-    <!-- مؤشر عمل الخلفية -->
-    <div class="background-status" id="backgroundStatus">
-        <i class="fas fa-check-circle" style="color: #48dbfb;"></i>
-        <span id="bgStatusText">المنبهات تعمل في الخلفية</span>
+        <span>📱 أضف التطبيق للشاشة الرئيسية</span>
     </div>
 
     <button class="dark-mode-toggle" onclick="toggleDarkMode()">
@@ -725,7 +675,7 @@
     </div>
 
     <div class="sound-modal" id="soundModal">
-        <h4><i class="fas fa-music"></i> نغمة المنبه</h4>
+        <h4><i class="fas fa-music"></i> 🎵 نغمة المنبه</h4>
         <input type="file" id="audioFileInput" accept="audio/*" onchange="handleAudioUpload(event)">
         <div id="soundInfo" class="sound-info" style="display: none;">
             <i class="fas fa-volume-up"></i>
@@ -735,7 +685,7 @@
                 <button class="reset-sound" onclick="resetToDefaultSound()"><i class="fas fa-trash"></i></button>
             </div>
         </div>
-        <p style="font-size: 0.7rem; color: #888; margin-top: 8px;">MP3, WAV, OGG</p>
+        <p style="font-size: 0.7rem; color: #888; margin-top: 8px;">📁 MP3, WAV, OGG</p>
     </div>
 
     <div class="alarm-app">
@@ -743,83 +693,83 @@
             <div class="header">
                 <h1>
                     <i class="fas fa-clock"></i>
-                    المنبه الذكي
+                    ⏰ المنبه الذكي
                 </h1>
-                <p>يعمل حتى لو كان التطبيق مغلقاً والجهاز مقفلاً</p>
+                <p>🎯 ضبط منبه مع نغمة مخصصة وتكرار يومي</p>
             </div>
 
             <div class="mode-switch">
                 <button class="mode-btn active" onclick="switchMode('timer')">
-                    <i class="fas fa-hourglass-half"></i> المؤقت
+                    <i class="fas fa-hourglass-half"></i> ⏱️ المؤقت
                 </button>
                 <button class="mode-btn" onclick="switchMode('alarm')">
-                    <i class="fas fa-bell"></i> المنبه
+                    <i class="fas fa-bell"></i> 🔔 المنبه
                 </button>
             </div>
 
             <div id="timerMode" class="mode-content">
                 <div class="time-display">
                     <div class="timer-number" id="timerDisplay">25:00</div>
-                    <div class="timer-label">الوقت المتبقي</div>
+                    <div class="timer-label">⏳ الوقت المتبقي</div>
                 </div>
 
                 <div class="controls">
                     <button class="control-btn play" onclick="startTimer()">
-                        <i class="fas fa-play"></i>
+                        <i class="fas fa-play"></i> ▶️
                     </button>
                     <button class="control-btn pause" onclick="pauseTimer()">
-                        <i class="fas fa-pause"></i>
+                        <i class="fas fa-pause"></i> ⏸️
                     </button>
                     <button class="control-btn reset" onclick="resetTimer()">
-                        <i class="fas fa-redo-alt"></i>
+                        <i class="fas fa-redo-alt"></i> 🔄
                     </button>
                 </div>
 
                 <div class="timer-settings">
                     <div class="preset-times">
-                        <button class="preset-btn" onclick="setPresetTime(1)">1 دقيقة</button>
-                        <button class="preset-btn" onclick="setPresetTime(5)">5 دقائق</button>
-                        <button class="preset-btn" onclick="setPresetTime(15)">15 دقيقة</button>
-                        <button class="preset-btn" onclick="setPresetTime(25)">25 دقيقة</button>
-                        <button class="preset-btn" onclick="setPresetTime(60)">60 دقيقة</button>
+                        <button class="preset-btn" onclick="setPresetTime(1)">1️⃣ 1 دقيقة</button>
+                        <button class="preset-btn" onclick="setPresetTime(5)">5️⃣ 5 دقائق</button>
+                        <button class="preset-btn" onclick="setPresetTime(15)">🔟5 15 دقيقة</button>
+                        <button class="preset-btn" onclick="setPresetTime(25)">2️⃣5 25 دقيقة</button>
+                        <button class="preset-btn" onclick="setPresetTime(60)">6️⃣0 60 دقيقة</button>
                     </div>
                     <div class="custom-time">
-                        <input type="number" id="customMinutes" placeholder="دقائق" min="1" max="180">
-                        <button onclick="setCustomTime()">ضبط</button>
+                        <input type="number" id="customMinutes" placeholder="⏱️ دقائق" min="1" max="180">
+                        <button onclick="setCustomTime()">✅ ضبط</button>
                     </div>
                 </div>
             </div>
 
             <div id="alarmMode" class="mode-content" style="display: none;">
                 <div class="alarm-section">
-                    <h3><i class="fas fa-plus-circle"></i> ضبط منبه جديد</h3>
+                    <h3><i class="fas fa-plus-circle"></i> ➕ ضبط منبه جديد</h3>
                     <div class="alarm-input-group">
                         <input type="datetime-local" id="alarmDateTime">
                     </div>
-                    <input type="text" id="alarmMessage" class="alarm-message-input" placeholder="رسالة التذكير" value="⏰ حان وقت التنبيه!">
+                    <input type="text" id="alarmMessage" class="alarm-message-input" placeholder="📝 رسالة التذكير" value="⏰ حان وقت التنبيه!">
                     
                     <div class="repeat-option">
-                        <label><i class="fas fa-repeat"></i> تكرار المنبه</label>
+                        <label><i class="fas fa-repeat"></i> 🔁 تكرار المنبه</label>
                         <select id="repeatType" class="repeat-select">
-                            <option value="none">مرة واحدة</option>
-                            <option value="daily">يومي</option>
-                            <option value="weekly">أسبوعي</option>
-                            <option value="monthly">شهري</option>
-                            <option value="always">دائماً (كل يوم)</option>
+                            <option value="none">🔘 مرة واحدة</option>
+                            <option value="daily">📆 يومي</option>
+                            <option value="weekly">📅 أسبوعي</option>
+                            <option value="monthly">🗓️ شهري</option>
+                            <option value="always">♻️ دائماً (كل يوم)</option>
                         </select>
                     </div>
                     
                     <button class="set-alarm-btn" onclick="setAlarm()">
-                        <i class="fas fa-bell"></i> ضبط المنبه
+                        <i class="fas fa-bell"></i> 🔔 ضبط المنبه
                     </button>
                 </div>
 
                 <div class="pending-alarms">
                     <div class="pending-title">
-                        <i class="fas fa-list"></i> المنبهات المعلقة
+                        <i class="fas fa-list"></i> 📋 المنبهات المعلقة
                     </div>
                     <div id="alarmsList">
-                        <p style="text-align: center; color: #888;">لا توجد منبهات</p>
+                        <p style="text-align: center; color: #888;">⏰ لا توجد منبهات</p>
                     </div>
                 </div>
             </div>
@@ -829,16 +779,16 @@
     <div id="alarmModal" class="alarm-modal">
         <div class="alarm-modal-content">
             <div class="alarm-modal-icon">
-                <i class="fas fa-bell"></i>
+                <i class="fas fa-bell"></i> 🔔
             </div>
             <div class="alarm-modal-title" id="modalTitle">⏰ تنبيه!</div>
             <div class="alarm-modal-message" id="modalMessage">حان وقت التنبيه</div>
             <div class="alarm-modal-buttons">
                 <button class="modal-btn dismiss" onclick="dismissAlarm()">
-                    <i class="fas fa-check"></i> إغلاق
+                    <i class="fas fa-check"></i> ✅ إغلاق
                 </button>
                 <button class="modal-btn snooze" onclick="snoozeAlarm()">
-                    <i class="fas fa-clock"></i> تذكير بعد 5 دقائق
+                    <i class="fas fa-clock"></i> 💤 تذكير بعد 5 دقائق
                 </button>
             </div>
         </div>
@@ -847,11 +797,6 @@
     <div id="toastMessage" class="toast-message"></div>
 
     <script>
-        // ==================== PWA Variables ====================
-        let deferredPrompt;
-        let isOnline = navigator.onLine;
-        let notificationPermissionGranted = false;
-
         // ==================== متغيرات الصوت ====================
         let customAudioBlob = null;
         let customAudioUrl = null;
@@ -867,122 +812,14 @@
         // ==================== متغيرات المنبه ====================
         let alarms = [];
         let activeAlarm = null;
-        let backgroundCheckInterval = null;
 
-        // ==================== طلب إذن الإشعارات ====================
-        async function requestNotificationPermission() {
-            if ('Notification' in window) {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    notificationPermissionGranted = true;
-                    document.getElementById('notificationPermission').classList.remove('show');
-                    showToast('✅ تم تفعيل الإشعارات - المنبه سيعمل حتى لو التطبيق مغلق');
-                    
-                    // تسجيل الاشتراك في الإشعارات
-                    registerForPushNotifications();
-                } else {
-                    showToast('⚠️ الإشعارات غير مفعلة - المنبه لن يعمل عندما يكون التطبيق مغلقاً');
-                }
-            }
-        }
-
-        // تسجيل الاشتراك في الإشعارات
-        async function registerForPushNotifications() {
-            if ('serviceWorker' in navigator && 'PushManager' in window) {
-                try {
-                    const registration = await navigator.serviceWorker.ready;
-                    const subscription = await registration.pushManager.subscribe({
-                        userVisibleOnly: true,
-                        applicationServerKey: null // سيتم إضافة مفتاح الخادم لاحقاً
-                    });
-                    console.log('Push subscription:', subscription);
-                } catch (error) {
-                    console.log('Push subscription failed:', error);
-                }
-            }
-        }
-
-        // ==================== Background Sync ====================
-        async function registerBackgroundSync() {
-            if ('serviceWorker' in navigator && 'SyncManager' in window) {
-                try {
-                    const registration = await navigator.serviceWorker.ready;
-                    await registration.sync.register('check-alarms');
-                    console.log('Background sync registered');
-                    document.getElementById('bgStatusText').innerHTML = 'المنبهات تعمل في الخلفية ✓';
-                } catch (error) {
-                    console.log('Background sync not supported:', error);
-                    startFallbackBackgroundCheck();
-                }
-            } else {
-                startFallbackBackgroundCheck();
-            }
-        }
-
-        // حل بديل للفحص في الخلفية
-        function startFallbackBackgroundCheck() {
-            // فحص كل دقيقة باستخدام setInterval (يعمل طالما المتصفح مفتوح)
-            if (backgroundCheckInterval) clearInterval(backgroundCheckInterval);
-            
-            backgroundCheckInterval = setInterval(() => {
-                checkAlarmsInBackground();
-            }, 60000); // كل دقيقة
-            
-            document.getElementById('bgStatusText').innerHTML = 'فحص دوري كل دقيقة (المتصفح مفتوح)';
-        }
-
-        // فحص المنبهات في الخلفية
-        function checkAlarmsInBackground() {
-            const now = Date.now();
-            
-            alarms.forEach(alarm => {
-                if (alarm.active && alarm.time <= now) {
-                    triggerAlarmInBackground(alarm);
-                }
-            });
-        }
-
-        // تشغيل المنبه في الخلفية
-        function triggerAlarmInBackground(alarm) {
-            // إرسال إشعار
-            if (notificationPermissionGranted && 'Notification' in window) {
-                new Notification(alarm.message, {
-                    body: `الوقت: ${alarm.timeString}`,
-                    icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%23667eea"/%3E%3Ctext x="50" y="67" font-size="50" text-anchor="middle" fill="white"%3E⏰%3C/text%3E%3C/svg%3E',
-                    vibrate: [200, 100, 200],
-                    requireInteraction: true
-                });
-            }
-            
-            // تشغيل الصوت
-            playAlarmSound();
-            
-            // معالجة التكرار
-            if (alarm.repeatType !== 'none') {
-                let nextTime = getNextRepeatTime(alarm.time, alarm.repeatType);
-                if (nextTime) {
-                    alarm.time = nextTime;
-                    alarm.timeString = new Date(nextTime).toLocaleTimeString('ar-EG');
-                    alarm.dateString = new Date(nextTime).toLocaleDateString('ar-EG');
-                    saveAlarms();
-                } else {
-                    cancelAlarm(alarm.id, false);
-                }
-            } else {
-                cancelAlarm(alarm.id, false);
-            }
-            
-            // عرض النافذة إذا كانت الصفحة مفتوحة
-            if (document.visibilityState === 'visible') {
-                showAlarmModal(alarm.message, `الوقت: ${alarm.timeString}`);
-            }
-        }
-
-        // ==================== PWA Functions ====================
+        // ==================== PWA ====================
+        let deferredPrompt;
+        
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            document.getElementById('installPrompt').classList.add('show');
+            document.getElementById('installPrompt').style.display = 'flex';
         });
 
         function installPWA() {
@@ -993,22 +830,10 @@
                         showToast('✅ تم تثبيت التطبيق بنجاح');
                     }
                     deferredPrompt = null;
-                    document.getElementById('installPrompt').classList.remove('show');
+                    document.getElementById('installPrompt').style.display = 'none';
                 });
             }
         }
-
-        window.addEventListener('online', () => {
-            isOnline = true;
-            document.getElementById('offlineBadge').classList.remove('show');
-            showToast('🟢 تم استعادة الاتصال بالإنترنت');
-        });
-
-        window.addEventListener('offline', () => {
-            isOnline = false;
-            document.getElementById('offlineBadge').classList.add('show');
-            showToast('🔴 لا يوجد اتصال بالإنترنت - التطبيق يعمل محلياً');
-        });
 
         // ==================== نافذة الصوت ====================
         function toggleSoundModal() {
@@ -1071,7 +896,7 @@
                 document.getElementById('soundName').textContent = file.name.length > 20 ? file.name.substring(0, 17) + '...' : file.name;
                 document.getElementById('soundBtn').classList.add('has-sound');
                 
-                showToast('✅ تم رفع النغمة بنجاح!');
+                showToast('✅ تم رفع النغمة بنجاح! 🎵');
             };
             reader.readAsDataURL(file);
         }
@@ -1139,7 +964,7 @@
             customAudioName = null;
             document.getElementById('soundInfo').style.display = 'none';
             document.getElementById('soundBtn').classList.remove('has-sound');
-            showToast('✅ تم العودة للنغمة الافتراضية');
+            showToast('✅ تم العودة للنغمة الافتراضية 🔔');
         }
 
         // ==================== تحميل المنبهات ====================
@@ -1214,8 +1039,8 @@
                 if (timerSeconds === 0) {
                     pauseTimer();
                     playAlarmSound();
-                    showToast('⏰ انتهى الوقت!');
-                    showAlarmModal('انتهى المؤقت', 'الوقت المحدد انتهى! 🎯');
+                    showToast('⏰ انتهى الوقت! 🎯');
+                    showAlarmModal('انتهى المؤقت ⏱️', 'الوقت المحدد انتهى! 🎯');
                     setTimeout(() => stopAlarmSound(), 10000);
                 }
             }, 1000);
@@ -1236,7 +1061,7 @@
             pauseTimer();
             timerSeconds = minutes * 60;
             updateTimerDisplay();
-            showToast(`✅ تم ضبط المؤقت على ${minutes} دقائق`);
+            showToast(`✅ تم ضبط المؤقت على ${minutes} دقائق ⏱️`);
         }
 
         function setCustomTime() {
@@ -1245,7 +1070,7 @@
                 pauseTimer();
                 timerSeconds = minutes * 60;
                 updateTimerDisplay();
-                showToast(`✅ تم ضبط المؤقت على ${minutes} دقائق`);
+                showToast(`✅ تم ضبط المؤقت على ${minutes} دقائق ⏱️`);
             } else {
                 showToast('❌ الرجاء إدخال عدد دقائق صحيح (1-180)');
             }
@@ -1258,7 +1083,7 @@
             let repeatType = document.getElementById('repeatType').value;
             
             if (!dateTime) {
-                showToast('❌ الرجاء تحديد وقت المنبه');
+                showToast('❌ الرجاء تحديد وقت المنبه ⏰');
                 return;
             }
             
@@ -1266,16 +1091,16 @@
             let now = new Date().getTime();
             
             if (alarmTime <= now) {
-                showToast('❌ الرجاء تحديد وقت في المستقبل');
+                showToast('❌ الرجاء تحديد وقت في المستقبل ⏰');
                 return;
             }
             
             let repeatText = {
-                'none': 'مرة واحدة',
-                'daily': 'يومي',
-                'weekly': 'أسبوعي',
-                'monthly': 'شهري',
-                'always': 'دائماً'
+                'none': 'مرة واحدة 🔘',
+                'daily': 'يومي 📆',
+                'weekly': 'أسبوعي 📅',
+                'monthly': 'شهري 🗓️',
+                'always': 'دائماً ♻️'
             };
             
             let alarm = {
@@ -1293,7 +1118,7 @@
             saveAlarms();
             scheduleAlarm(alarm);
             renderAlarmsList();
-            showToast(`✅ تم ضبط المنبه (${repeatText[repeatType]})`);
+            showToast(`✅ تم ضبط المنبه (${repeatText[repeatType]}) 🔔`);
             
             let defaultTime = new Date();
             defaultTime.setMinutes(defaultTime.getMinutes() + 10);
@@ -1308,7 +1133,7 @@
             
             let timeoutId = setTimeout(() => {
                 if (alarm.active) {
-                    triggerAlarmInBackground(alarm);
+                    triggerAlarm(alarm);
                 }
             }, delay);
             
@@ -1323,6 +1148,37 @@
             });
         }
         
+        function triggerAlarm(alarm) {
+            if (!alarm.active) return;
+            
+            activeAlarm = alarm;
+            playAlarmSound();
+            showAlarmModal(alarm.message, `⏰ الوقت: ${alarm.timeString}`);
+            
+            if (alarm.repeatType !== 'none') {
+                let nextTime = getNextRepeatTime(alarm.time, alarm.repeatType);
+                if (nextTime) {
+                    let newAlarm = {
+                        id: Date.now(),
+                        time: nextTime,
+                        timeString: new Date(nextTime).toLocaleTimeString('ar-EG'),
+                        dateString: new Date(nextTime).toLocaleDateString('ar-EG'),
+                        message: alarm.message,
+                        repeatType: alarm.repeatType,
+                        repeatText: alarm.repeatText,
+                        active: true
+                    };
+                    alarms.push(newAlarm);
+                    scheduleAlarm(newAlarm);
+                    saveAlarms();
+                    renderAlarmsList();
+                    showToast(`🔄 تم إعادة جدولة المنبه (${alarm.repeatText})`);
+                }
+            }
+            
+            cancelAlarm(alarm.id, false);
+        }
+        
         function cancelAlarm(alarmId, showToastMsg = true) {
             let index = alarms.findIndex(a => a.id === alarmId);
             if (index !== -1) {
@@ -1334,7 +1190,7 @@
                 saveAlarms();
                 renderAlarmsList();
                 if (showToastMsg) {
-                    showToast('✅ تم إلغاء المنبه');
+                    showToast('✅ تم إلغاء المنبه ❌');
                 }
             }
         }
@@ -1344,7 +1200,7 @@
             let activeAlarms = alarms.filter(a => a.active);
             
             if (activeAlarms.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #888;">لا توجد منبهات معلقة</p>';
+                container.innerHTML = '<p style="text-align: center; color: #888;">⏰ لا توجد منبهات معلقة</p>';
                 return;
             }
             
@@ -1352,15 +1208,15 @@
                 <div class="alarm-item">
                     <div class="alarm-item-info">
                         <div class="alarm-item-time">
-                            <i class="fas fa-clock"></i> ${alarm.timeString} - ${alarm.dateString}
+                            <i class="fas fa-clock"></i> ⏰ ${alarm.timeString} - ${alarm.dateString}
                         </div>
-                        <div class="alarm-item-message">${alarm.message}</div>
+                        <div class="alarm-item-message">📝 ${alarm.message}</div>
                         <div class="alarm-repeat-badge">
-                            <i class="fas fa-repeat"></i> ${alarm.repeatText}
+                            <i class="fas fa-repeat"></i> 🔁 ${alarm.repeatText}
                         </div>
                     </div>
                     <button class="cancel-alarm-btn" onclick="cancelAlarm(${alarm.id})">
-                        <i class="fas fa-times"></i>
+                        <i class="fas fa-times"></i> ❌
                     </button>
                 </div>
             `).join('');
@@ -1389,16 +1245,16 @@
                     time: snoozeTime,
                     timeString: new Date(snoozeTime).toLocaleTimeString('ar-EG'),
                     dateString: new Date(snoozeTime).toLocaleDateString('ar-EG'),
-                    message: `[تذكير] ${activeAlarm.message}`,
+                    message: `💤 [تذكير] ${activeAlarm.message}`,
                     repeatType: 'none',
-                    repeatText: 'مرة واحدة',
+                    repeatText: 'مرة واحدة 🔘',
                     active: true
                 };
                 alarms.push(snoozeAlarm);
                 scheduleAlarm(snoozeAlarm);
                 saveAlarms();
                 renderAlarmsList();
-                showToast('⏰ تم تأجيل المنبه 5 دقائق');
+                showToast('⏰ تم تأجيل المنبه 5 دقائق 💤');
             }
             dismissAlarm();
         }
@@ -1426,7 +1282,7 @@
         }
         
         // ==================== تهيئة الصفحة ====================
-        async function init() {
+        function init() {
             loadCustomSound();
             loadAlarms();
             updateTimerDisplay();
@@ -1440,36 +1296,6 @@
             defaultTime.setMinutes(defaultTime.getMinutes() + 10);
             document.getElementById('alarmDateTime').value = defaultTime.toISOString().slice(0, 16);
             
-            // طلب إذن الإشعارات بعد 3 ثواني
-            setTimeout(() => {
-                if (Notification.permission === 'default') {
-                    document.getElementById('notificationPermission').classList.add('show');
-                } else if (Notification.permission === 'granted') {
-                    notificationPermissionGranted = true;
-                }
-            }, 3000);
-            
-            // تسجيل Service Worker
-            if ('serviceWorker' in navigator) {
-                try {
-                    const registration = await navigator.serviceWorker.register('sw.js');
-                    console.log('Service Worker registered');
-                    
-                    // تسجيل Background Sync
-                    if ('sync' in registration) {
-                        await registerBackgroundSync();
-                    } else {
-                        startFallbackBackgroundCheck();
-                    }
-                } catch (error) {
-                    console.log('Service Worker registration failed:', error);
-                    startFallbackBackgroundCheck();
-                }
-            } else {
-                startFallbackBackgroundCheck();
-            }
-            
-            // إغلاق نافذة الصوت عند الضغط خارجها
             document.addEventListener('click', function(e) {
                 let soundModal = document.getElementById('soundModal');
                 let soundBtn = document.getElementById('soundBtn');
