@@ -1,0 +1,1485 @@
+<!-- index.html - النسخة النهائية مع دعم الخلفية الكامل -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="منبهي">
+    <title>⏰ المنبه الذكي | يعمل في الخلفية</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23667eea'/%3E%3Ctext x='50' y='67' font-size='50' text-anchor='middle' fill='white'%3E⏰%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* نفس الاستايلات السابقة مع إضافة جديدة */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .notification-permission {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(145deg, #ffd93e, #f39c12);
+            color: #333;
+            padding: 12px 20px;
+            border-radius: 50px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            cursor: pointer;
+            animation: slideIn 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .notification-permission.show {
+            display: flex;
+        }
+
+        .install-prompt {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(145deg, #48dbfb, #0abde3);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            cursor: pointer;
+            animation: slideIn 0.3s;
+        }
+
+        .install-prompt.show {
+            display: flex;
+        }
+
+        .offline-badge {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #ff6b6b;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            display: none;
+            z-index: 1000;
+        }
+
+        .offline-badge.show {
+            display: block;
+        }
+
+        .background-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: #48dbfb;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .background-status i {
+            font-size: 0.8rem;
+        }
+
+        .alarm-app {
+            width: 100%;
+            min-height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body.dark-mode .alarm-app {
+            background: #0a0a0f;
+        }
+
+        .app-content {
+            flex: 1;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+        }
+
+        .header h1 {
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .mode-switch {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: #f0f0f0;
+            border-radius: 60px;
+            padding: 5px;
+        }
+
+        body.dark-mode .mode-switch {
+            background: #2a2a3a;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 50px;
+            font-size: clamp(0.9rem, 3.5vw, 1rem);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: transparent;
+            color: #666;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .time-display {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: clamp(20px, 5vw, 40px);
+            background: linear-gradient(145deg, #f8f9fa, #fff);
+            border-radius: 40px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05), 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .time-display {
+            background: #2a2a3a;
+        }
+
+        .timer-number {
+            font-size: clamp(3rem, 12vw, 6rem);
+            font-weight: 800;
+            font-family: monospace;
+            color: #667eea;
+            letter-spacing: 5px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: clamp(15px, 4vw, 25px);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            width: clamp(60px, 15vw, 80px);
+            height: clamp(60px, 15vw, 80px);
+            border-radius: 50%;
+            border: none;
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn.play {
+            background: linear-gradient(145deg, #48dbfb, #0abde3);
+            color: white;
+        }
+
+        .control-btn.pause {
+            background: linear-gradient(145deg, #ffd93e, #f39c12);
+            color: white;
+        }
+
+        .control-btn.reset {
+            background: linear-gradient(145deg, #ff6b6b, #ee5a5a);
+            color: white;
+        }
+
+        .timer-settings {
+            background: #f8f9fa;
+            border-radius: 30px;
+            padding: clamp(15px, 4vw, 25px);
+            margin-bottom: 30px;
+        }
+
+        body.dark-mode .timer-settings {
+            background: #2a2a3a;
+        }
+
+        .preset-times {
+            display: flex;
+            justify-content: center;
+            gap: clamp(8px, 2vw, 15px);
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .preset-btn {
+            padding: clamp(8px, 2.5vw, 12px) clamp(15px, 4vw, 25px);
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .custom-time {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .custom-time input {
+            width: clamp(80px, 25vw, 100px);
+            padding: clamp(10px, 3vw, 12px);
+            border: 2px solid #f0f0f0;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .custom-time button {
+            padding: clamp(10px, 3vw, 12px) clamp(20px, 5vw, 30px);
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .alarm-section {
+            background: #f8f9fa;
+            border-radius: 30px;
+            padding: clamp(15px, 4vw, 25px);
+            margin-bottom: 30px;
+        }
+
+        body.dark-mode .alarm-section {
+            background: #2a2a3a;
+        }
+
+        .alarm-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alarm-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .alarm-input-group input {
+            flex: 1;
+            padding: clamp(12px, 3.5vw, 15px);
+            border: 2px solid #f0f0f0;
+            border-radius: 20px;
+            min-width: 180px;
+        }
+
+        body.dark-mode .alarm-input-group input {
+            background: #1a1a24;
+            border-color: #3a3a4a;
+            color: white;
+        }
+
+        .alarm-message-input {
+            width: 100%;
+            padding: clamp(12px, 3.5vw, 15px);
+            border: 2px solid #f0f0f0;
+            border-radius: 20px;
+            margin-bottom: 15px;
+        }
+
+        body.dark-mode .alarm-message-input {
+            background: #1a1a24;
+            border-color: #3a3a4a;
+            color: white;
+        }
+
+        .repeat-option {
+            margin-bottom: 15px;
+        }
+
+        .repeat-option label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .repeat-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #f0f0f0;
+            border-radius: 20px;
+            background: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        body.dark-mode .repeat-select {
+            background: #1a1a24;
+            border-color: #3a3a4a;
+            color: white;
+        }
+
+        .sound-control {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+
+        .sound-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sound-btn.has-sound {
+            background: linear-gradient(145deg, #48dbfb, #0abde3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(72, 219, 251, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(72, 219, 251, 0); }
+        }
+
+        .sound-modal {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            width: 260px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 200;
+            border: 1px solid #667eea;
+        }
+
+        body.dark-mode .sound-modal {
+            background: #1a1a24;
+        }
+
+        .sound-modal.show {
+            display: block;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .sound-modal h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .sound-modal input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #f0f0f0;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        body.dark-mode .sound-modal input {
+            background: #2a2a3a;
+            border-color: #3a3a4a;
+            color: white;
+        }
+
+        .sound-info {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            padding: 8px;
+            margin: 10px 0;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .sound-info span {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sound-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .sound-buttons button {
+            padding: 8px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        .play-sound {
+            background: #48dbfb;
+            color: white;
+        }
+
+        .reset-sound {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .set-alarm-btn {
+            width: 100%;
+            padding: clamp(12px, 3.5vw, 15px);
+            background: linear-gradient(145deg, #ff6b6b, #ee5a5a);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .pending-alarms {
+            margin-top: 20px;
+        }
+
+        .pending-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .alarm-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: clamp(12px, 3vw, 15px);
+            background: white;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        body.dark-mode .alarm-item {
+            background: #1a1a24;
+        }
+
+        .alarm-item-info {
+            flex: 1;
+        }
+
+        .alarm-item-time {
+            font-weight: 700;
+            color: #ff6b6b;
+            font-family: monospace;
+        }
+
+        .alarm-repeat-badge {
+            font-size: 0.7rem;
+            background: #48dbfb20;
+            color: #48dbfb;
+            padding: 2px 8px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        .cancel-alarm-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .alarm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .alarm-modal.show {
+            display: flex;
+        }
+
+        .alarm-modal-content {
+            background: white;
+            border-radius: 40px;
+            padding: clamp(30px, 8vw, 50px);
+            text-align: center;
+            max-width: 400px;
+            width: 85%;
+        }
+
+        body.dark-mode .alarm-modal-content {
+            background: #1a1a24;
+        }
+
+        .alarm-modal-icon {
+            font-size: clamp(3rem, 12vw, 4rem);
+            color: #ff6b6b;
+            margin-bottom: 20px;
+            animation: ring 0.5s infinite;
+        }
+
+        @keyframes ring {
+            0%, 100% { transform: rotate(0); }
+            25% { transform: rotate(10deg); }
+            75% { transform: rotate(-10deg); }
+        }
+
+        .alarm-modal-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: clamp(12px, 3.5vw, 15px);
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .modal-btn.dismiss {
+            background: linear-gradient(145deg, #48dbfb, #0abde3);
+            color: white;
+        }
+
+        .modal-btn.snooze {
+            background: #ffd93e;
+            color: #333;
+        }
+
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .toast-message {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(145deg, #48dbfb, #0abde3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            z-index: 1500;
+            display: none;
+            text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            .alarm-modal-buttons {
+                flex-direction: column;
+            }
+            .sound-modal {
+                width: calc(100% - 40px);
+                left: 20px;
+                right: 20px;
+            }
+            .notification-permission, .install-prompt {
+                top: 80px;
+                right: 20px;
+                left: 20px;
+                text-align: center;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- طلب إذن الإشعارات -->
+    <div class="notification-permission" id="notificationPermission" onclick="requestNotificationPermission()">
+        <i class="fas fa-bell"></i>
+        <span>فعّل الإشعارات ليعمل المنبه حتى لو كان التطبيق مغلقاً</span>
+    </div>
+
+    <!-- مؤشر التثبيت -->
+    <div class="install-prompt" id="installPrompt" onclick="installPWA()">
+        <i class="fas fa-download"></i>
+        <span>تثبيت التطبيق على جهازك</span>
+    </div>
+
+    <!-- مؤشر وضع عدم الاتصال -->
+    <div class="offline-badge" id="offlineBadge">
+        <i class="fas fa-wifi-slash"></i> غير متصل - يعمل محلياً
+    </div>
+
+    <!-- مؤشر عمل الخلفية -->
+    <div class="background-status" id="backgroundStatus">
+        <i class="fas fa-check-circle" style="color: #48dbfb;"></i>
+        <span id="bgStatusText">المنبهات تعمل في الخلفية</span>
+    </div>
+
+    <button class="dark-mode-toggle" onclick="toggleDarkMode()">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <div class="sound-control">
+        <button class="sound-btn" id="soundBtn" onclick="toggleSoundModal()">
+            <i class="fas fa-music"></i>
+        </button>
+    </div>
+
+    <div class="sound-modal" id="soundModal">
+        <h4><i class="fas fa-music"></i> نغمة المنبه</h4>
+        <input type="file" id="audioFileInput" accept="audio/*" onchange="handleAudioUpload(event)">
+        <div id="soundInfo" class="sound-info" style="display: none;">
+            <i class="fas fa-volume-up"></i>
+            <span id="soundName">-</span>
+            <div class="sound-buttons">
+                <button class="play-sound" onclick="playCustomSound()"><i class="fas fa-play"></i></button>
+                <button class="reset-sound" onclick="resetToDefaultSound()"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+        <p style="font-size: 0.7rem; color: #888; margin-top: 8px;">MP3, WAV, OGG</p>
+    </div>
+
+    <div class="alarm-app">
+        <div class="app-content">
+            <div class="header">
+                <h1>
+                    <i class="fas fa-clock"></i>
+                    المنبه الذكي
+                </h1>
+                <p>يعمل حتى لو كان التطبيق مغلقاً والجهاز مقفلاً</p>
+            </div>
+
+            <div class="mode-switch">
+                <button class="mode-btn active" onclick="switchMode('timer')">
+                    <i class="fas fa-hourglass-half"></i> المؤقت
+                </button>
+                <button class="mode-btn" onclick="switchMode('alarm')">
+                    <i class="fas fa-bell"></i> المنبه
+                </button>
+            </div>
+
+            <div id="timerMode" class="mode-content">
+                <div class="time-display">
+                    <div class="timer-number" id="timerDisplay">25:00</div>
+                    <div class="timer-label">الوقت المتبقي</div>
+                </div>
+
+                <div class="controls">
+                    <button class="control-btn play" onclick="startTimer()">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="control-btn pause" onclick="pauseTimer()">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                    <button class="control-btn reset" onclick="resetTimer()">
+                        <i class="fas fa-redo-alt"></i>
+                    </button>
+                </div>
+
+                <div class="timer-settings">
+                    <div class="preset-times">
+                        <button class="preset-btn" onclick="setPresetTime(1)">1 دقيقة</button>
+                        <button class="preset-btn" onclick="setPresetTime(5)">5 دقائق</button>
+                        <button class="preset-btn" onclick="setPresetTime(15)">15 دقيقة</button>
+                        <button class="preset-btn" onclick="setPresetTime(25)">25 دقيقة</button>
+                        <button class="preset-btn" onclick="setPresetTime(60)">60 دقيقة</button>
+                    </div>
+                    <div class="custom-time">
+                        <input type="number" id="customMinutes" placeholder="دقائق" min="1" max="180">
+                        <button onclick="setCustomTime()">ضبط</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="alarmMode" class="mode-content" style="display: none;">
+                <div class="alarm-section">
+                    <h3><i class="fas fa-plus-circle"></i> ضبط منبه جديد</h3>
+                    <div class="alarm-input-group">
+                        <input type="datetime-local" id="alarmDateTime">
+                    </div>
+                    <input type="text" id="alarmMessage" class="alarm-message-input" placeholder="رسالة التذكير" value="⏰ حان وقت التنبيه!">
+                    
+                    <div class="repeat-option">
+                        <label><i class="fas fa-repeat"></i> تكرار المنبه</label>
+                        <select id="repeatType" class="repeat-select">
+                            <option value="none">مرة واحدة</option>
+                            <option value="daily">يومي</option>
+                            <option value="weekly">أسبوعي</option>
+                            <option value="monthly">شهري</option>
+                            <option value="always">دائماً (كل يوم)</option>
+                        </select>
+                    </div>
+                    
+                    <button class="set-alarm-btn" onclick="setAlarm()">
+                        <i class="fas fa-bell"></i> ضبط المنبه
+                    </button>
+                </div>
+
+                <div class="pending-alarms">
+                    <div class="pending-title">
+                        <i class="fas fa-list"></i> المنبهات المعلقة
+                    </div>
+                    <div id="alarmsList">
+                        <p style="text-align: center; color: #888;">لا توجد منبهات</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="alarmModal" class="alarm-modal">
+        <div class="alarm-modal-content">
+            <div class="alarm-modal-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <div class="alarm-modal-title" id="modalTitle">⏰ تنبيه!</div>
+            <div class="alarm-modal-message" id="modalMessage">حان وقت التنبيه</div>
+            <div class="alarm-modal-buttons">
+                <button class="modal-btn dismiss" onclick="dismissAlarm()">
+                    <i class="fas fa-check"></i> إغلاق
+                </button>
+                <button class="modal-btn snooze" onclick="snoozeAlarm()">
+                    <i class="fas fa-clock"></i> تذكير بعد 5 دقائق
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastMessage" class="toast-message"></div>
+
+    <script>
+        // ==================== PWA Variables ====================
+        let deferredPrompt;
+        let isOnline = navigator.onLine;
+        let notificationPermissionGranted = false;
+
+        // ==================== متغيرات الصوت ====================
+        let customAudioBlob = null;
+        let customAudioUrl = null;
+        let customAudioName = null;
+        let currentAlarmAudio = null;
+
+        // ==================== متغيرات المؤقت ====================
+        let timerSeconds = 1500;
+        let timerRunning = false;
+        let timerInterval = null;
+        let currentMode = 'timer';
+
+        // ==================== متغيرات المنبه ====================
+        let alarms = [];
+        let activeAlarm = null;
+        let backgroundCheckInterval = null;
+
+        // ==================== طلب إذن الإشعارات ====================
+        async function requestNotificationPermission() {
+            if ('Notification' in window) {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    notificationPermissionGranted = true;
+                    document.getElementById('notificationPermission').classList.remove('show');
+                    showToast('✅ تم تفعيل الإشعارات - المنبه سيعمل حتى لو التطبيق مغلق');
+                    
+                    // تسجيل الاشتراك في الإشعارات
+                    registerForPushNotifications();
+                } else {
+                    showToast('⚠️ الإشعارات غير مفعلة - المنبه لن يعمل عندما يكون التطبيق مغلقاً');
+                }
+            }
+        }
+
+        // تسجيل الاشتراك في الإشعارات
+        async function registerForPushNotifications() {
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                try {
+                    const registration = await navigator.serviceWorker.ready;
+                    const subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: null // سيتم إضافة مفتاح الخادم لاحقاً
+                    });
+                    console.log('Push subscription:', subscription);
+                } catch (error) {
+                    console.log('Push subscription failed:', error);
+                }
+            }
+        }
+
+        // ==================== Background Sync ====================
+        async function registerBackgroundSync() {
+            if ('serviceWorker' in navigator && 'SyncManager' in window) {
+                try {
+                    const registration = await navigator.serviceWorker.ready;
+                    await registration.sync.register('check-alarms');
+                    console.log('Background sync registered');
+                    document.getElementById('bgStatusText').innerHTML = 'المنبهات تعمل في الخلفية ✓';
+                } catch (error) {
+                    console.log('Background sync not supported:', error);
+                    startFallbackBackgroundCheck();
+                }
+            } else {
+                startFallbackBackgroundCheck();
+            }
+        }
+
+        // حل بديل للفحص في الخلفية
+        function startFallbackBackgroundCheck() {
+            // فحص كل دقيقة باستخدام setInterval (يعمل طالما المتصفح مفتوح)
+            if (backgroundCheckInterval) clearInterval(backgroundCheckInterval);
+            
+            backgroundCheckInterval = setInterval(() => {
+                checkAlarmsInBackground();
+            }, 60000); // كل دقيقة
+            
+            document.getElementById('bgStatusText').innerHTML = 'فحص دوري كل دقيقة (المتصفح مفتوح)';
+        }
+
+        // فحص المنبهات في الخلفية
+        function checkAlarmsInBackground() {
+            const now = Date.now();
+            
+            alarms.forEach(alarm => {
+                if (alarm.active && alarm.time <= now) {
+                    triggerAlarmInBackground(alarm);
+                }
+            });
+        }
+
+        // تشغيل المنبه في الخلفية
+        function triggerAlarmInBackground(alarm) {
+            // إرسال إشعار
+            if (notificationPermissionGranted && 'Notification' in window) {
+                new Notification(alarm.message, {
+                    body: `الوقت: ${alarm.timeString}`,
+                    icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%23667eea"/%3E%3Ctext x="50" y="67" font-size="50" text-anchor="middle" fill="white"%3E⏰%3C/text%3E%3C/svg%3E',
+                    vibrate: [200, 100, 200],
+                    requireInteraction: true
+                });
+            }
+            
+            // تشغيل الصوت
+            playAlarmSound();
+            
+            // معالجة التكرار
+            if (alarm.repeatType !== 'none') {
+                let nextTime = getNextRepeatTime(alarm.time, alarm.repeatType);
+                if (nextTime) {
+                    alarm.time = nextTime;
+                    alarm.timeString = new Date(nextTime).toLocaleTimeString('ar-EG');
+                    alarm.dateString = new Date(nextTime).toLocaleDateString('ar-EG');
+                    saveAlarms();
+                } else {
+                    cancelAlarm(alarm.id, false);
+                }
+            } else {
+                cancelAlarm(alarm.id, false);
+            }
+            
+            // عرض النافذة إذا كانت الصفحة مفتوحة
+            if (document.visibilityState === 'visible') {
+                showAlarmModal(alarm.message, `الوقت: ${alarm.timeString}`);
+            }
+        }
+
+        // ==================== PWA Functions ====================
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPrompt').classList.add('show');
+        });
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        showToast('✅ تم تثبيت التطبيق بنجاح');
+                    }
+                    deferredPrompt = null;
+                    document.getElementById('installPrompt').classList.remove('show');
+                });
+            }
+        }
+
+        window.addEventListener('online', () => {
+            isOnline = true;
+            document.getElementById('offlineBadge').classList.remove('show');
+            showToast('🟢 تم استعادة الاتصال بالإنترنت');
+        });
+
+        window.addEventListener('offline', () => {
+            isOnline = false;
+            document.getElementById('offlineBadge').classList.add('show');
+            showToast('🔴 لا يوجد اتصال بالإنترنت - التطبيق يعمل محلياً');
+        });
+
+        // ==================== نافذة الصوت ====================
+        function toggleSoundModal() {
+            let modal = document.getElementById('soundModal');
+            modal.classList.toggle('show');
+        }
+
+        function loadCustomSound() {
+            let savedSound = localStorage.getItem('customAlarmSound');
+            if (savedSound) {
+                try {
+                    let soundData = JSON.parse(savedSound);
+                    customAudioName = soundData.name;
+                    let byteCharacters = atob(soundData.data);
+                    let byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    let byteArray = new Uint8Array(byteNumbers);
+                    customAudioBlob = new Blob([byteArray], { type: soundData.type });
+                    customAudioUrl = URL.createObjectURL(customAudioBlob);
+                    
+                    document.getElementById('soundInfo').style.display = 'flex';
+                    document.getElementById('soundName').textContent = customAudioName.length > 20 ? customAudioName.substring(0, 17) + '...' : customAudioName;
+                    document.getElementById('soundBtn').classList.add('has-sound');
+                } catch (e) {
+                    console.log('خطأ في تحميل الصوت');
+                }
+            }
+        }
+
+        function handleAudioUpload(event) {
+            let file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.startsWith('audio/')) {
+                showToast('❌ الرجاء رفع ملف صوتي فقط');
+                return;
+            }
+            
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let base64Data = e.target.result.split(',')[1];
+                let soundData = {
+                    name: file.name,
+                    type: file.type,
+                    data: base64Data
+                };
+                localStorage.setItem('customAlarmSound', JSON.stringify(soundData));
+                
+                if (customAudioUrl) {
+                    URL.revokeObjectURL(customAudioUrl);
+                }
+                
+                customAudioBlob = file;
+                customAudioUrl = URL.createObjectURL(file);
+                customAudioName = file.name;
+                
+                document.getElementById('soundInfo').style.display = 'flex';
+                document.getElementById('soundName').textContent = file.name.length > 20 ? file.name.substring(0, 17) + '...' : file.name;
+                document.getElementById('soundBtn').classList.add('has-sound');
+                
+                showToast('✅ تم رفع النغمة بنجاح!');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function playCustomSound() {
+            if (customAudioUrl) {
+                let audio = new Audio(customAudioUrl);
+                audio.play().catch(e => showToast('⚠️ خطأ في التشغيل'));
+            } else {
+                playDefaultSound();
+            }
+        }
+
+        function playDefaultSound() {
+            try {
+                let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                function playBeep(frequency, duration, delay = 0) {
+                    setTimeout(() => {
+                        let oscillator = audioCtx.createOscillator();
+                        let gain = audioCtx.createGain();
+                        oscillator.type = 'sine';
+                        oscillator.frequency.value = frequency;
+                        gain.gain.value = 0.2;
+                        oscillator.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        oscillator.start();
+                        oscillator.stop(audioCtx.currentTime + duration);
+                    }, delay);
+                }
+                playBeep(880, 0.3, 0);
+                playBeep(660, 0.3, 0.3);
+                playBeep(880, 0.3, 0.6);
+                playBeep(1046, 0.5, 0.9);
+            } catch (e) { }
+        }
+
+        function playAlarmSound() {
+            if (customAudioUrl) {
+                if (currentAlarmAudio) {
+                    currentAlarmAudio.pause();
+                }
+                currentAlarmAudio = new Audio(customAudioUrl);
+                currentAlarmAudio.loop = true;
+                currentAlarmAudio.play().catch(e => playDefaultSound());
+            } else {
+                playDefaultSound();
+            }
+        }
+
+        function stopAlarmSound() {
+            if (currentAlarmAudio) {
+                currentAlarmAudio.pause();
+                currentAlarmAudio.currentTime = 0;
+                currentAlarmAudio = null;
+            }
+        }
+
+        function resetToDefaultSound() {
+            localStorage.removeItem('customAlarmSound');
+            if (customAudioUrl) {
+                URL.revokeObjectURL(customAudioUrl);
+            }
+            customAudioBlob = null;
+            customAudioUrl = null;
+            customAudioName = null;
+            document.getElementById('soundInfo').style.display = 'none';
+            document.getElementById('soundBtn').classList.remove('has-sound');
+            showToast('✅ تم العودة للنغمة الافتراضية');
+        }
+
+        // ==================== تحميل المنبهات ====================
+        function loadAlarms() {
+            let saved = localStorage.getItem('alarms_data_repeat');
+            if (saved) {
+                alarms = JSON.parse(saved);
+                renderAlarmsList();
+                scheduleAllAlarms();
+            }
+        }
+
+        function saveAlarms() {
+            localStorage.setItem('alarms_data_repeat', JSON.stringify(alarms));
+        }
+
+        function getNextRepeatTime(alarmTime, repeatType) {
+            let date = new Date(alarmTime);
+            
+            switch(repeatType) {
+                case 'daily':
+                    date.setDate(date.getDate() + 1);
+                    break;
+                case 'weekly':
+                    date.setDate(date.getDate() + 7);
+                    break;
+                case 'monthly':
+                    date.setMonth(date.getMonth() + 1);
+                    break;
+                case 'always':
+                    date.setDate(date.getDate() + 1);
+                    break;
+                default:
+                    return null;
+            }
+            return date.getTime();
+        }
+
+        // ==================== وضع المؤقت ====================
+        function switchMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            if (mode === 'timer') {
+                document.querySelector('.mode-btn:first-child').classList.add('active');
+                document.getElementById('timerMode').style.display = 'block';
+                document.getElementById('alarmMode').style.display = 'none';
+            } else {
+                document.querySelector('.mode-btn:last-child').classList.add('active');
+                document.getElementById('timerMode').style.display = 'none';
+                document.getElementById('alarmMode').style.display = 'block';
+                renderAlarmsList();
+            }
+        }
+
+        function updateTimerDisplay() {
+            let minutes = Math.floor(timerSeconds / 60);
+            let seconds = timerSeconds % 60;
+            document.getElementById('timerDisplay').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (timerRunning) return;
+            timerRunning = true;
+            
+            timerInterval = setInterval(() => {
+                if (timerSeconds > 0) {
+                    timerSeconds--;
+                    updateTimerDisplay();
+                }
+                
+                if (timerSeconds === 0) {
+                    pauseTimer();
+                    playAlarmSound();
+                    showToast('⏰ انتهى الوقت!');
+                    showAlarmModal('انتهى المؤقت', 'الوقت المحدد انتهى! 🎯');
+                    setTimeout(() => stopAlarmSound(), 10000);
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            timerRunning = false;
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timerSeconds = 1500;
+            updateTimerDisplay();
+        }
+
+        function setPresetTime(minutes) {
+            pauseTimer();
+            timerSeconds = minutes * 60;
+            updateTimerDisplay();
+            showToast(`✅ تم ضبط المؤقت على ${minutes} دقائق`);
+        }
+
+        function setCustomTime() {
+            let minutes = parseInt(document.getElementById('customMinutes').value);
+            if (minutes && minutes > 0 && minutes <= 180) {
+                pauseTimer();
+                timerSeconds = minutes * 60;
+                updateTimerDisplay();
+                showToast(`✅ تم ضبط المؤقت على ${minutes} دقائق`);
+            } else {
+                showToast('❌ الرجاء إدخال عدد دقائق صحيح (1-180)');
+            }
+        }
+
+        // ==================== وضع المنبه ====================
+        function setAlarm() {
+            let dateTime = document.getElementById('alarmDateTime').value;
+            let message = document.getElementById('alarmMessage').value.trim();
+            let repeatType = document.getElementById('repeatType').value;
+            
+            if (!dateTime) {
+                showToast('❌ الرجاء تحديد وقت المنبه');
+                return;
+            }
+            
+            let alarmTime = new Date(dateTime).getTime();
+            let now = new Date().getTime();
+            
+            if (alarmTime <= now) {
+                showToast('❌ الرجاء تحديد وقت في المستقبل');
+                return;
+            }
+            
+            let repeatText = {
+                'none': 'مرة واحدة',
+                'daily': 'يومي',
+                'weekly': 'أسبوعي',
+                'monthly': 'شهري',
+                'always': 'دائماً'
+            };
+            
+            let alarm = {
+                id: Date.now(),
+                time: alarmTime,
+                timeString: new Date(alarmTime).toLocaleTimeString('ar-EG'),
+                dateString: new Date(alarmTime).toLocaleDateString('ar-EG'),
+                message: message || '⏰ حان وقت التنبيه!',
+                repeatType: repeatType,
+                repeatText: repeatText[repeatType],
+                active: true
+            };
+            
+            alarms.push(alarm);
+            saveAlarms();
+            scheduleAlarm(alarm);
+            renderAlarmsList();
+            showToast(`✅ تم ضبط المنبه (${repeatText[repeatType]})`);
+            
+            let defaultTime = new Date();
+            defaultTime.setMinutes(defaultTime.getMinutes() + 10);
+            document.getElementById('alarmDateTime').value = defaultTime.toISOString().slice(0, 16);
+        }
+        
+        function scheduleAlarm(alarm) {
+            let now = new Date().getTime();
+            let delay = alarm.time - now;
+            
+            if (delay <= 0) return;
+            
+            let timeoutId = setTimeout(() => {
+                if (alarm.active) {
+                    triggerAlarmInBackground(alarm);
+                }
+            }, delay);
+            
+            alarm.timeoutId = timeoutId;
+        }
+        
+        function scheduleAllAlarms() {
+            alarms.forEach(alarm => {
+                if (alarm.active) {
+                    scheduleAlarm(alarm);
+                }
+            });
+        }
+        
+        function cancelAlarm(alarmId, showToastMsg = true) {
+            let index = alarms.findIndex(a => a.id === alarmId);
+            if (index !== -1) {
+                let alarm = alarms[index];
+                if (alarm.timeoutId) {
+                    clearTimeout(alarm.timeoutId);
+                }
+                alarms.splice(index, 1);
+                saveAlarms();
+                renderAlarmsList();
+                if (showToastMsg) {
+                    showToast('✅ تم إلغاء المنبه');
+                }
+            }
+        }
+        
+        function renderAlarmsList() {
+            let container = document.getElementById('alarmsList');
+            let activeAlarms = alarms.filter(a => a.active);
+            
+            if (activeAlarms.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #888;">لا توجد منبهات معلقة</p>';
+                return;
+            }
+            
+            container.innerHTML = activeAlarms.map(alarm => `
+                <div class="alarm-item">
+                    <div class="alarm-item-info">
+                        <div class="alarm-item-time">
+                            <i class="fas fa-clock"></i> ${alarm.timeString} - ${alarm.dateString}
+                        </div>
+                        <div class="alarm-item-message">${alarm.message}</div>
+                        <div class="alarm-repeat-badge">
+                            <i class="fas fa-repeat"></i> ${alarm.repeatText}
+                        </div>
+                    </div>
+                    <button class="cancel-alarm-btn" onclick="cancelAlarm(${alarm.id})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        // ==================== نافذة المنبه ====================
+        function showAlarmModal(title, message) {
+            let modal = document.getElementById('alarmModal');
+            document.getElementById('modalTitle').innerHTML = title;
+            document.getElementById('modalMessage').innerHTML = message;
+            modal.classList.add('show');
+        }
+        
+        function dismissAlarm() {
+            let modal = document.getElementById('alarmModal');
+            modal.classList.remove('show');
+            stopAlarmSound();
+            activeAlarm = null;
+        }
+        
+        function snoozeAlarm() {
+            if (activeAlarm) {
+                let snoozeTime = new Date().getTime() + (5 * 60 * 1000);
+                let snoozeAlarm = {
+                    id: Date.now(),
+                    time: snoozeTime,
+                    timeString: new Date(snoozeTime).toLocaleTimeString('ar-EG'),
+                    dateString: new Date(snoozeTime).toLocaleDateString('ar-EG'),
+                    message: `[تذكير] ${activeAlarm.message}`,
+                    repeatType: 'none',
+                    repeatText: 'مرة واحدة',
+                    active: true
+                };
+                alarms.push(snoozeAlarm);
+                scheduleAlarm(snoozeAlarm);
+                saveAlarms();
+                renderAlarmsList();
+                showToast('⏰ تم تأجيل المنبه 5 دقائق');
+            }
+            dismissAlarm();
+        }
+        
+        // ==================== أدوات مساعدة ====================
+        function showToast(message) {
+            let toast = document.getElementById('toastMessage');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2000);
+        }
+        
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            let btn = document.querySelector('.dark-mode-toggle i');
+            if (document.body.classList.contains('dark-mode')) {
+                btn.className = 'fas fa-sun';
+                localStorage.setItem('alarm_darkMode', 'true');
+            } else {
+                btn.className = 'fas fa-moon';
+                localStorage.setItem('alarm_darkMode', 'false');
+            }
+        }
+        
+        // ==================== تهيئة الصفحة ====================
+        async function init() {
+            loadCustomSound();
+            loadAlarms();
+            updateTimerDisplay();
+            
+            if (localStorage.getItem('alarm_darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+                document.querySelector('.dark-mode-toggle i').className = 'fas fa-sun';
+            }
+            
+            let defaultTime = new Date();
+            defaultTime.setMinutes(defaultTime.getMinutes() + 10);
+            document.getElementById('alarmDateTime').value = defaultTime.toISOString().slice(0, 16);
+            
+            // طلب إذن الإشعارات بعد 3 ثواني
+            setTimeout(() => {
+                if (Notification.permission === 'default') {
+                    document.getElementById('notificationPermission').classList.add('show');
+                } else if (Notification.permission === 'granted') {
+                    notificationPermissionGranted = true;
+                }
+            }, 3000);
+            
+            // تسجيل Service Worker
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.register('sw.js');
+                    console.log('Service Worker registered');
+                    
+                    // تسجيل Background Sync
+                    if ('sync' in registration) {
+                        await registerBackgroundSync();
+                    } else {
+                        startFallbackBackgroundCheck();
+                    }
+                } catch (error) {
+                    console.log('Service Worker registration failed:', error);
+                    startFallbackBackgroundCheck();
+                }
+            } else {
+                startFallbackBackgroundCheck();
+            }
+            
+            // إغلاق نافذة الصوت عند الضغط خارجها
+            document.addEventListener('click', function(e) {
+                let soundModal = document.getElementById('soundModal');
+                let soundBtn = document.getElementById('soundBtn');
+                if (soundModal && soundBtn && !soundModal.contains(e.target) && !soundBtn.contains(e.target)) {
+                    soundModal.classList.remove('show');
+                }
+            });
+        }
+        
+        init();
+    </script>
+</body>
+</html>
